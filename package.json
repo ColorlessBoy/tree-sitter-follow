@@ -1,6 +1,6 @@
 {
   "name": "tree-sitter-follow",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Follow is a dependent type language for formal proof.",
   "repository": "https://github.com/tree-sitter/tree-sitter-follow",
   "license": "MIT",
