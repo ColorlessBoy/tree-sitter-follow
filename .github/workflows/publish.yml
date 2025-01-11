@@ -18,12 +18,18 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '20'
+        registry-url: 'https://registry.npmjs.org/' # 指定 npm 官方注册表
 
     - name: Install dependencies
       run: npm install
     
     - name: Fix package.json
       run: npm pkg fix # 修复 package.json
+
+    - name: Debug npm config (可选)
+      run: npm config list
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     - name: Publish package
       run: npm publish
