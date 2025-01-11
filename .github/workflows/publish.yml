@@ -1,12 +1,13 @@
 name: Publish Package
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - 'v*' # 匹配所有以 "v" 开头的标签
 
 jobs:
   publish:
-    environment: production # 指定使用的环境
+    environment: production
     runs-on: ubuntu-latest
 
     steps:
@@ -17,6 +18,11 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '20'
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
 
     - name: Install dependencies
       run: npm install
