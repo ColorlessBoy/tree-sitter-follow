@@ -8,7 +8,7 @@
 // @ts-check
 
 module.exports = grammar({
-  name: 'lean4_lambda_calculator',
+  name: 'follow',
 
   extras: $ => [
     /\s/,               // Ignore whitespace
@@ -22,25 +22,37 @@ module.exports = grammar({
     command: $ => choice(
       $.definition,
       $.theorem,
-      $.expr
+      $.proofstep,
+      $.action,
+      $.search
     ),
 
     // Definitions (with various syntaxes)
     definition: $ => choice(
-      seq('def', $.identifier, ':', $.expr),
-      seq('def', $.identifier, ':=', $.expr),
-      seq('def', $.identifier, ':', $.expr, ':=', $.expr)
+      seq($.def_key, $.identifier, ':', $.expr),
+      seq($.def_key, $.identifier, ':=', $.expr),
+      seq($.def_key, $.identifier, ':', $.expr, ':=', $.expr)
     ),
 
     // Theorem syntax
-    theorem: $ => seq('thm', $.identifier, ':', $.expr),
+    theorem: $ => seq($.thm_key, $.identifier, ':', $.expr),
+
+    // Proof step
+    proofstep: $ => seq($.ps_key, $.expr),
+
+    // Action 
+    action: $ => seq($.action, $.expr),
+    
+    // Search
+    search: $ => seq($.search, $.identifier),
 
     // General expressions
     expr: $ => choice(
       $.primary,
       $.app,
       $.lambda,
-      $.forall
+      $.forall,
+      seq("(", $.expr, ")")
     ),
 
     primary: $ => choice(
@@ -50,22 +62,28 @@ module.exports = grammar({
     ),
 
     // Application (left-associative)
-    app: $ => prec.left(seq($.expr, $.expr)),
+    app: $ => prec.left(3, seq($.expr, $.expr)),
 
     // Lambda expression (right-associative)
-    lambda: $ => prec.right(seq($.lambda_arg, '=>', $.expr)),
-    lambda_arg: $ => seq('(', $.const, ':', $.expr, ')'),
+    lambda: $ => prec.right(2, seq($.lambda_arg, '=>', $.expr)),
+    lambda_arg: $ => choice(
+      prec(1, seq('(', $.const, ':', $.expr, ')')), // 提升优先级
+      $.expr
+    ),
 
     // Forall expression (right-associative)
-    forall: $ => prec.right(seq($.forall_arg, '->', $.expr)),
-    forall_arg: $ => seq('(', $.const, ':', $.expr, ')'),
+    forall: $ => prec.right(1, seq($.forall_arg, '->', $.expr)),
+    forall_arg: $ => choice(
+      prec(1, seq('(', $.const, ':', $.expr, ')')), // 提升优先级
+      $.expr
+    ),
 
     // Sorts
-    sort: $ => seq('Sort', '(', $.level, ')'),
+    sort: $ => prec(100, seq('Sort', '(', $.level, ')')),
 
     // Constants and bound variables
     const: $ => $.identifier,
-    bound_var: $ => seq('#', /\d+/),
+    bound_var: $ => prec(100, seq('#', /\d+/)),
 
     // Level expressions
     level: $ => choice(
@@ -77,12 +95,19 @@ module.exports = grammar({
     ),
 
     // Identifiers
-    identifier: $ => /[\w_\.']+/,
+    identifier: $ => token(/[\w_\.']+/),
+
+    // keyword 
+    def_key: $ => token(prec(2, "def")),
+    thm_key: $ => token(prec(2, "thm")),
+    ps_key: $ => token(prec(2, "ps")),
+    action_key: $ => token(prec(2, "action")),
+    search_key: $ => token(prec(2, "search")),
 
     // Comments
     comment: $ => choice(
       seq('--', /.*/),                               // Single-line comment
-      seq('/-', /[^]*?/, '-/')                      // Block comment
+      seq('/-', /[^-]*(-[^/][^-]*)*?-\//),             // Block comment
     )
   }
 });
