@@ -1,7 +1,7 @@
 [package]
 name = "tree-sitter-follow"
 description = "Follow is a dependent type language for formal proof."
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Peng Lingwei <penglingwei@zju.edu.cn>"]
 license = "MIT"
 readme = "README.md"
